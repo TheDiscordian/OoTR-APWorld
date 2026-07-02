@@ -385,6 +385,18 @@ class OOTWorld(World):
                 option_value = result.current_key
             setattr(self, option_name, option_value)
 
+        # Match upstream's option dependencies: Hideout entrances are part of
+        # interior ER, and the GF child heart piece option only applies when
+        # Hideout entrances are actually shuffled.
+        if self.shuffle_interior_entrances == 'off':
+            self.shuffle_hideout_entrances = False
+            self.options.shuffle_hideout_entrances.value = 0
+        if not self.shuffle_hideout_entrances:
+            self.shuffle_gerudo_fortress_heart_piece = 'vanilla'
+            self.options.shuffle_gerudo_fortress_heart_piece.value = (
+                type(self.options.shuffle_gerudo_fortress_heart_piece).option_vanilla
+            )
+
         self.regions = []  # internal caches of regions for this world, used later
         self._regions_cache = {}
 
@@ -994,7 +1006,7 @@ class OOTWorld(World):
                 self._claim_rauru_starting(reward_name, rauru_location)
                 return
             if self.ut_replay_results.get('rauru_free_post_fill', False):
-                self.rauru_free_post_fill = True
+                self._enable_rauru_free_post_fill(rauru_location)
                 return
 
         if mode == 'vanilla':
@@ -1012,7 +1024,7 @@ class OOTWorld(World):
 
         if mode in ('dungeon', 'regional'):
             if self.skip_reward_from_rauru == 'free':
-                self.rauru_free_post_fill = True
+                self._enable_rauru_free_post_fill(rauru_location)
                 return
 
             self.rauru_starting_item = 'Light Medallion'
@@ -1027,7 +1039,11 @@ class OOTWorld(World):
             self._claim_rauru_starting(chosen, rauru_location)
             return
 
+        self._enable_rauru_free_post_fill(rauru_location)
+
+    def _enable_rauru_free_post_fill(self, rauru_location):
         self.rauru_free_post_fill = True
+        add_item_rule(rauru_location, self._can_be_rauru_starting_item)
 
     def _claim_rauru_starting(self, reward_name: str, rauru_location):
         """Push a chosen reward as starting inventory and mark Rauru as a non-sendable check."""
@@ -1037,6 +1053,33 @@ class OOTWorld(World):
         rauru_location.show_in_spoiler = False
         if rauru_location in rauru_location.parent_region.locations:
             rauru_location.parent_region.locations.remove(rauru_location)
+
+    def _can_be_rauru_starting_item(self, item) -> bool:
+        if item.name == 'Nothing':
+            return True
+        target_world = self.multiworld.worlds[item.player]
+        if getattr(target_world, 'game', None) != self.game:
+            return True
+        return self._can_grant_starting_item_name(item.name)
+
+    @staticmethod
+    def _can_grant_starting_item_name(item_name: str) -> bool:
+        from .SaveContext import SaveContext
+        from .ItemPool import IGNORE_LOCATION
+
+        if item_name.endswith(')') and ' (' in item_name:
+            item_base, implicit_count = item_name[:-1].rsplit(' (', 1)
+            if implicit_count.isdigit():
+                item_name = item_base
+
+        return (
+            item_name in SaveContext.bottle_types
+            or item_name in ["Piece of Heart", "Piece of Heart (Treasure Chest Game)"]
+            or item_name == "Heart Container"
+            or item_name == "Bombchu Item"
+            or item_name == IGNORE_LOCATION
+            or item_name in SaveContext.save_writes_table
+        )
 
     @staticmethod
     def item_dungeon_name_from_name(item_name: str) -> Optional[str]:
@@ -1456,8 +1499,9 @@ class OOTWorld(World):
         if not self.shuffle_100_skulltula_rupee:
             loc = self.multiworld.get_location("Kak 100 Gold Skulltula Reward", self.player)
             loc.parent_region.locations.remove(loc)
-        if self.shuffle_gerudo_fortress_heart_piece != 'shuffle':
-            loc = self.multiworld.get_location("GF Freestanding PoH", self.player)
+        # Hideout ER can still leave the child-only balcony path unreachable.
+        loc = self.multiworld.get_location("GF Freestanding PoH", self.player)
+        if self.shuffle_gerudo_fortress_heart_piece != 'shuffle' or loc not in reachable:
             loc.parent_region.locations.remove(loc)
 
         # Exclude locations in Ganon's Castle proportional to the number of items required to make the bridge
@@ -1952,6 +1996,10 @@ class OOTWorld(World):
             rauru_loc = self.multiworld.get_location('ToT Reward from Rauru', self.player)
             extracted = rauru_loc.item
             if extracted is not None:
+                if not self._can_be_rauru_starting_item(extracted):
+                    raise FillError(
+                        f'ToT Reward from Rauru received {extracted.name}, which cannot be granted as '
+                        'starting inventory. This should have been prevented by the Rauru item rule.')
                 if extracted.location is rauru_loc:
                     extracted.location = None
                 rauru_loc.item = None
@@ -2060,11 +2108,18 @@ class OOTWorld(World):
         oot_worlds = list(multiworld.get_game_worlds(cls.game))
 
         def hint_type_players(hint_type: str) -> set:
-            return {autoworld.player for autoworld in oot_worlds
-                    if autoworld.hints != 'none' 
-                    and autoworld.hint_dist_user['distribution'][hint_type]['copies'] > 0
-                    and (autoworld.hint_dist_user['distribution'][hint_type]['fixed'] > 0 
-                      or autoworld.hint_dist_user['distribution'][hint_type]['weight'] > 0)}
+            def hint_enabled(autoworld) -> bool:
+                if autoworld.hints == 'none':
+                    return False
+                hint_dist = autoworld.hint_dist_user.get('distribution', {}).get(hint_type)
+                if not hint_dist:
+                    return False
+                return (
+                    hint_dist.get('copies', 0) > 0
+                    and (hint_dist.get('fixed', 0) > 0 or hint_dist.get('weight', 0) > 0)
+                )
+
+            return {autoworld.player for autoworld in oot_worlds if hint_enabled(autoworld)}
 
         try:
             item_hint_players = hint_type_players('item')
