@@ -254,7 +254,9 @@ class OOTWorld(World):
     settings: typing.ClassVar[OOTSettings]
     topology_present: bool = True
     ut_can_gen_without_yaml = True
-    ut_omitted_slot_options = {'plando_connections', *cosmetic_options, *sfx_options}
+    # APWorld-specific: generic plando items are generation-only data and contain
+    # PlandoItem objects, which cannot be serialized into slot_data.
+    ut_omitted_slot_options = {'plando_connections', 'plando_items', *cosmetic_options, *sfx_options}
     item_name_to_id = {item_name: oot_data_to_ap_id(data, False) for item_name, data in item_table.items() if
                        oot_data_to_ap_id(data, False) is not None and item_name not in {
                         'Buy Magic Bean', 'Milk',

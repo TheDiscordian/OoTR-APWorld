@@ -377,11 +377,21 @@ def set_ocarina_note_rules(ootworld):
 
 def valid_oot_item_placement(location, item) -> bool:
     multiworld = location.parent_region.multiworld
+    location_world = multiworld.worlds.get(location.player)
+    if (
+        location_world is not None
+        and getattr(location_world, 'game', None) == 'Ocarina of Time'
+        and location.type == 'Shop'
+        and location.name not in location_world.shop_prices
+    ):
+        # APWorld-specific: AP generic plando runs before OoT's shop prefill.
+        # Reserve regular shop slots so non-shop items cannot steal shop-only fill space.
+        return item.player == location.player and getattr(item, 'type', None) == 'Shop'
+
     item_world = multiworld.worlds.get(item.player)
     if item_world is None or getattr(item_world, 'game', None) != 'Ocarina of Time':
         return True
 
-    location_world = multiworld.worlds.get(location.player)
     location_dungeon_obj = getattr(location.parent_region, 'dungeon', None)
     location_dungeon = location_dungeon_obj.name if location_dungeon_obj is not None else None
     location_is_empty = (
@@ -416,8 +426,6 @@ def valid_oot_item_placement(location, item) -> bool:
     if item.player != location.player:
         return False
 
-    if location.type == 'Shop' and location.name not in item_world.shop_prices:
-        return False
     if item_world.shuffle_song_items == 'song' and location.type == 'Song':
         return False
     if item_world.shuffle_song_items == 'dungeon' and location.name in dungeon_song_locations:
