@@ -425,6 +425,9 @@ def patch_rom(world, rom):
 
     # show seed info on file select screen
     def makebytes(txt, size):
+        # AP player names may contain Unicode, but this file-select renderer only
+        # supports printable single-byte ASCII glyphs.
+        txt = ''.join(c if ' ' <= c <= '~' else '?' for c in txt)
         _bytes = list(ord(c) for c in txt[:size-1]) + [0] * size
         return _bytes[:size]
 
