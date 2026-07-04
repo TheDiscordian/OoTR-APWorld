@@ -39,7 +39,7 @@ Payload: bridge -> client
 Payload: client -> bridge
 {
     items: list,
-    playerNames: list,
+    playerNames: dict,
     triggerDeath: bool
 }
 
@@ -50,7 +50,8 @@ deathlink_sent_this_death: we interacted with the multiworld on this death, wait
 
 oot_loc_name_to_id = network_data_package["games"]["Ocarina of Time"]["location_name_to_id"]
 
-script_version: int = 8
+script_version: int = 9
+AP_MAX_PLAYER_ID = 1024
 
 def get_item_value(ap_id):
     return ap_id - 66000
@@ -160,7 +161,11 @@ def get_payload(ctx: OoTContext):
 
     payload = json.dumps({
             "items": [get_item_value(item.item) for item in ctx.items_received],
-            "playerNames": [name for (i, name) in ctx.player_names.items() if i != 0],
+            "playerNames": {
+                str(i): name
+                for (i, name) in ctx.player_names.items()
+                if 0 < i <= AP_MAX_PLAYER_ID
+            },
             "triggerDeath": trigger_death,
             "collectibleOverrides": ctx.collectible_override_flags_address,
             "collectibleOffsets": ctx.collectible_offsets,

@@ -26,7 +26,7 @@ from .DungeonList import dungeon_table, create_dungeons
 from .LogicTricks import normalized_name_tricks, normalized_name_advanced_tricks
 from .OcarinaSongs import SONG_TABLE, Song, generate_song_list
 from .Rom import Rom
-from .Patches import OoTContainer, patch_rom
+from .Patches import AP_MAX_PLAYER_ID, OoTContainer, patch_rom
 from .N64Patch import create_patch_file
 from .Cosmetics import patch_cosmetics
 
@@ -363,6 +363,12 @@ class OOTWorld(World):
 
     # Option parsing, handling incompatible options, building useful-item table
     def generate_early(self):
+        if self.multiworld.players > AP_MAX_PLAYER_ID:
+            raise Exception(
+                f'Ocarina of Time supports up to {AP_MAX_PLAYER_ID} AP players, '
+                f'but this multiworld has {self.multiworld.players}.'
+            )
+
         self.parser = Rule_AST_Transformer(self, self.player)
         self.ut_replay_slot_data = self.get_ut_replay_slot_data()
         self.ut_replay_results = self.get_generation_results_from_slot_data(self.ut_replay_slot_data)
@@ -411,10 +417,9 @@ class OOTWorld(World):
             self.file_hash = [self.random.randint(0, 31) for i in range(5)]
         else:
             self.file_hash = list(self.file_hash)
-        player_id = min(self.player, 255)
         self.connect_name = self.ut_replay_results.get(
             'connect_name',
-            f"OOT{player_id:03d}-" + ''.join(f"{value:02x}" for value in self.file_hash),
+            f"OOT{self.player:03d}-" + ''.join(f"{value:02x}" for value in self.file_hash),
         )
         self.collectible_flag_addresses = {}
         self.song_notes = {name: notes for name, (_, _, notes) in SONG_TABLE.items()}
