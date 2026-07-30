@@ -37,7 +37,9 @@ static uint8_t get_alpha(const z64_menudata_t* menu_data) {
 
 static void print_msg(z64_disp_buf_t* db, const char* s, int* top) {
     if (*s != '\0') {
-        text_print_size(db, s, 0x80, *top, TEXT_WIDTH, TEXT_HEIGHT);
+        // Sits under the file boxes, which the widescreen patch recentres
+        text_print_size(db, s, 0x80 + (Z64_SCREEN_WIDTH - Z64_SCREEN_WIDTH_VANILLA) / 2,
+                        *top, TEXT_WIDTH, TEXT_HEIGHT);
         *top += TEXT_HEIGHT + 1;
     }
     else {

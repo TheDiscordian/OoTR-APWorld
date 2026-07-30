@@ -6,8 +6,9 @@ const int8_t input_icon_width = 13;
 const int8_t input_icon_height = 13;
 const int8_t input_number_width = 6;
 const int8_t input_number_height = 12;
-const int16_t left_alignment = Z64_SCREEN_WIDTH / 12;
-const int16_t top_alignment = 11 * Z64_SCREEN_HEIGHT / 12 + 2;
+// Macros rather than constants, the screen width not being known until runtime
+#define left_alignment (Z64_SCREEN_WIDTH / 12)
+#define top_alignment (11 * Z64_SCREEN_HEIGHT / 12 + 2)
 
 void draw_x_stick(z64_disp_buf_t* db) {
     colorRGBA8_t color = {0xF4, 0xEC, 0x30, 0xFF};

@@ -11,7 +11,12 @@
 #define Z64_OOT11             0x01
 #define Z64_OOT12             0x02
 
-#define Z64_SCREEN_WIDTH      320
+// gScreenWidth is 320 normally and 424 when the widescreen cosmetic is applied,
+// so read it at runtime to keep our own UI centred and anchored either way.
+// Z64_SCREEN_WIDTH_VANILLA is for the few places that need a constant.
+#define Z64_SCREEN_WIDTH_VANILLA 320
+#define z64_screen_width_addr 0x800FE500
+#define Z64_SCREEN_WIDTH      (*(int32_t*)z64_screen_width_addr)
 #define Z64_SCREEN_HEIGHT     240
 
 #define Z64_SEG_PHYS          0x00

@@ -3,6 +3,7 @@
 #include "trade_quests.h"
 
 extern uint8_t CFG_DISPLAY_DPAD;
+extern uint8_t CFG_DPAD_ITEM_SWITCHING;
 
 //unknown 00 is a pointer to some vector transformation when the sound is tied to an actor. actor + 0x3E, when not tied to an actor (map), always 80104394
 //unknown 01 is always 4 in my testing
@@ -83,7 +84,9 @@ void draw_dpad_and_menu_utilities() {
 
             uint8_t current_trade_item = z64_file.items[z64_game.pause_ctxt.cursor_point[PAUSE_ITEM]];
             // D-pad under selected trade item slot, if more than one trade item
-            int left_trade_dpad = (z64_game.pause_ctxt.cursor_point[PAUSE_ITEM] == Z64_SLOT_ADULT_TRADE) ? 197 : 230;
+            // Over the item grid, which the widescreen patch recentres
+            int left_trade_dpad = ((z64_game.pause_ctxt.cursor_point[PAUSE_ITEM] == Z64_SLOT_ADULT_TRADE) ? 197 : 230)
+                                  + (Z64_SCREEN_WIDTH - Z64_SCREEN_WIDTH_VANILLA) / 2;
             int top_trade_dpad = 190;
 
             if (IsTradeItem(current_trade_item)) {
@@ -111,7 +114,7 @@ void draw_dpad_and_menu_utilities() {
         // Shows Ocarina buttons preview when you hover on the Ocarina slot in the menu.
         if (CAN_DRAW_OCARINA_BUTTONS) {
 
-            int left_ocarina_buttons = 70;
+            int left_ocarina_buttons = 70 + (Z64_SCREEN_WIDTH - Z64_SCREEN_WIDTH_VANILLA) / 2;
             int top_ocarina_buttons = 125;
             int icon_width = 16;
             int icon_height = 16;
@@ -164,7 +167,8 @@ void draw_dpad_and_menu_utilities() {
         }
 
         // Main dpad sprite both on menu screen and regular game.
-        int left_main_dpad = CFG_DPAD_ON_THE_LEFT ? 32 : 271;
+        // Anchored to the right edge, so it takes the full widescreen offset.
+        int left_main_dpad = CFG_DPAD_ON_THE_LEFT ? 32 : 271 + (Z64_SCREEN_WIDTH - Z64_SCREEN_WIDTH_VANILLA);
         int top_main_dpad = CFG_DPAD_ON_THE_LEFT ? 51 : 64;
         // If it's on the left, the top coordinate will change whether if there is a timer on screen,
         // or if there is a second row of hearts.
@@ -176,7 +180,12 @@ void draw_dpad_and_menu_utilities() {
             if (z64_file.energy_capacity > 10 * 0x10)
                 top_main_dpad += 8;
         }
-        sprite_draw(db, &dpad_sprite, 0, left_main_dpad, top_main_dpad, 16, 16);
+        // Reached via the dungeon info check above even when the HUD is off, so
+        // draw the sprite only for the feature that actually wants it.
+        if ((DISPLAY_DPAD && CFG_DISPLAY_DPAD) ||
+            (CFG_DPAD_DUNGEON_INFO_ENABLE && (CAN_DRAW_DUNGEON_INFO || CAN_DRAW_WORLD_INFO))) {
+            sprite_draw(db, &dpad_sprite, 0, left_main_dpad, top_main_dpad, 16, 16);
+        }
 
         // Menu dpad, items screen
         if (CAN_DRAW_DUNGEON_INFO && CFG_DPAD_DUNGEON_INFO_ENABLE) {

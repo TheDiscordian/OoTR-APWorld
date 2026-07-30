@@ -30,8 +30,9 @@ Gfx setup_db[] = {
     gsDPPipeSync(),
 
     gsSPLoadGeometryMode(0),
+    // Widened to the real screen width by gfx_init, this being a static list
     gsDPSetScissor(G_SC_NON_INTERLACE,
-                  0, 0, Z64_SCREEN_WIDTH, Z64_SCREEN_HEIGHT),
+                  0, 0, Z64_SCREEN_WIDTH_VANILLA, Z64_SCREEN_HEIGHT),
 
     gsDPSetOtherMode(G_AD_DISABLE | G_CD_DISABLE |
         G_CK_NONE | G_TC_FILT |
@@ -238,6 +239,17 @@ void rando_display_buffer_init() {
 }
 
 void rando_display_buffer_reset() {
+    // Match the scissor to the real screen width, or everything we draw stays
+    // clipped to the vanilla 320. Done per frame rather than in gfx_init
+    // because init runs before the displaced code that sets gScreenWidth.
+    for (uint32_t i = 0; i < sizeof(setup_db) / sizeof(setup_db[0]); i++) {
+        if ((setup_db[i].hi >> 24) == G_SETSCISSOR) {
+            gDPSetScissor(&setup_db[i], G_SC_NON_INTERLACE,
+                          0, 0, Z64_SCREEN_WIDTH, Z64_SCREEN_HEIGHT);
+            break;
+        }
+    }
+
     RandoGFXPool* pool = &randoGfxPools[randoGfxPoolIndex & 1];
 #if DEBUG_MODE
     debug_db.size = sizeof(pool->debug);

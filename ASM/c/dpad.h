@@ -34,7 +34,10 @@ extern uint8_t CFG_DPAD_ON_THE_LEFT;
 
 extern uint8_t CFG_ADULT_TRADE_SHUFFLE;
 extern uint8_t CFG_CHILD_TRADE_SHUFFLE;
+extern uint8_t CFG_DPAD_ITEM_SWITCHING;
 
+// Not gated by CFG_DPAD_ITEM_SWITCHING: with trade shuffle several trade items
+// share one slot, and this is the only way to switch between them.
 #define CAN_DRAW_TRADE_DPAD (z64_game.pause_ctxt.state == PAUSE_STATE_MAIN && \
                             z64_game.pause_ctxt.screen_idx == 0 && \
                             (!z64_game.pause_ctxt.changing || z64_game.pause_ctxt.changing == 3) && \
@@ -48,7 +51,8 @@ extern uint8_t CFG_CHILD_TRADE_SHUFFLE;
 
 #define CAN_USE_TRADE_DPAD  (CAN_DRAW_TRADE_DPAD && z64_game.pause_ctxt.changing != 3)
 
-#define DISPLAY_DPAD        ((((z64_file.iron_boots || z64_file.hover_boots) && z64_file.link_age == 0) || \
+#define DISPLAY_DPAD        (CFG_DPAD_ITEM_SWITCHING && \
+                            (((z64_file.iron_boots || z64_file.hover_boots) && z64_file.link_age == 0) || \
                             ((z64_file.items[Z64_SLOT_CHILD_TRADE] >= Z64_ITEM_WEIRD_EGG && z64_file.items[Z64_SLOT_CHILD_TRADE] <= Z64_ITEM_MASK_OF_TRUTH) && z64_file.link_age == 1) || \
                             z64_file.items[Z64_SLOT_OCARINA] == Z64_ITEM_FAIRY_OCARINA || z64_file.items[Z64_SLOT_OCARINA] == Z64_ITEM_OCARINA_OF_TIME) && \
                             !CAN_DRAW_TRADE_DPAD)

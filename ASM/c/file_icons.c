@@ -19,7 +19,9 @@ sprite_t* const icon_sprites[NUM_ICON_SPRITES] = {
 };
 
 
-#define LEFT_OFFSET (int)0x37
+// Shift by half the extra width so the icons stay over the file boxes, which
+// the widescreen patch recentres. No change at 4:3, where the delta is zero.
+#define LEFT_OFFSET (int)(0x37 + (Z64_SCREEN_WIDTH - Z64_SCREEN_WIDTH_VANILLA) / 2)
 #define TOP_OFFSET  (int)0x5C
 typedef struct {
     uint8_t left;
