@@ -1,9 +1,22 @@
 # Auto-generated color and sound-effect options from Colors.py and Sounds.py 
-from Options import Choice
+import re
+
+from Options import Choice, TextChoice
 
 
-class kokiri_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class ColorChoice(TextChoice):
+    """Choice that also accepts a custom color as a 3- or 6-digit hex code."""
+    def verify(self, world, player_name: str, plando_options) -> None:
+        if isinstance(self.value, int):
+            return super().verify(world, player_name, plando_options)
+        text = str(self.value).lstrip('#')
+        if not re.match(r'^(?:[0-9a-fA-F]{3}){1,2}$', text):
+            raise ValueError(f'{self.__class__.__name__} for {player_name}: '
+                             f'"{self.value}" is neither a listed option nor a hex color code')
+
+
+class kokiri_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Kokiri Tunic"
     option_random_choice = 0
     option_completely_random = 1
@@ -41,8 +54,8 @@ class kokiri_color(Choice):
     default = 2
 
 
-class goron_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class goron_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Goron Tunic"
     option_random_choice = 0
     option_completely_random = 1
@@ -80,8 +93,8 @@ class goron_color(Choice):
     default = 3
 
 
-class zora_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class zora_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Zora Tunic"
     option_random_choice = 0
     option_completely_random = 1
@@ -119,8 +132,8 @@ class zora_color(Choice):
     default = 4
 
 
-class silver_gauntlets_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class silver_gauntlets_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Silver Gauntlets Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -140,8 +153,8 @@ class silver_gauntlets_color(Choice):
     default = 2
 
 
-class golden_gauntlets_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class golden_gauntlets_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Golden Gauntlets Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -161,8 +174,8 @@ class golden_gauntlets_color(Choice):
     default = 3
 
 
-class mirror_shield_frame_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class mirror_shield_frame_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Mirror Shield Frame Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -179,8 +192,8 @@ class mirror_shield_frame_color(Choice):
     default = 2
 
 
-class navi_color_default_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class navi_color_default_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Navi Idle Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -207,8 +220,8 @@ class navi_color_default_inner(Choice):
     default = 4
 
 
-class navi_color_default_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class navi_color_default_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Navi Idle Outer"
     option_random_choice = 0
@@ -237,8 +250,8 @@ class navi_color_default_outer(Choice):
     default = 22
 
 
-class navi_color_enemy_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class navi_color_enemy_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Navi Targeting Enemy Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -265,8 +278,8 @@ class navi_color_enemy_inner(Choice):
     default = 7
 
 
-class navi_color_enemy_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class navi_color_enemy_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Navi Targeting Enemy Outer"
     option_random_choice = 0
@@ -295,8 +308,8 @@ class navi_color_enemy_outer(Choice):
     default = 22
 
 
-class navi_color_npc_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class navi_color_npc_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Navi Targeting NPC Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -323,8 +336,8 @@ class navi_color_npc_inner(Choice):
     default = 6
 
 
-class navi_color_npc_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class navi_color_npc_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Navi Targeting NPC Outer"
     option_random_choice = 0
@@ -353,8 +366,8 @@ class navi_color_npc_outer(Choice):
     default = 22
 
 
-class navi_color_prop_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class navi_color_prop_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Navi Targeting Prop Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -381,8 +394,8 @@ class navi_color_prop_inner(Choice):
     default = 5
 
 
-class navi_color_prop_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class navi_color_prop_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Navi Targeting Prop Outer"
     option_random_choice = 0
@@ -411,8 +424,8 @@ class navi_color_prop_outer(Choice):
     default = 22
 
 
-class sword_trail_color_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class sword_trail_color_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Sword Trail Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -430,8 +443,8 @@ class sword_trail_color_inner(Choice):
     default = 3
 
 
-class sword_trail_color_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class sword_trail_color_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Sword Trail Outer"
     option_random_choice = 0
@@ -451,8 +464,8 @@ class sword_trail_color_outer(Choice):
     default = 13
 
 
-class bombchu_trail_color_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class bombchu_trail_color_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Bombchu Trail Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -469,8 +482,8 @@ class bombchu_trail_color_inner(Choice):
     default = 3
 
 
-class bombchu_trail_color_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class bombchu_trail_color_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Bombchu Trail Outer"
     option_random_choice = 0
@@ -489,8 +502,8 @@ class bombchu_trail_color_outer(Choice):
     default = 12
 
 
-class boomerang_trail_color_inner(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class boomerang_trail_color_inner(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Boomerang Trail Inner"
     option_random_choice = 0
     option_completely_random = 1
@@ -508,8 +521,8 @@ class boomerang_trail_color_inner(Choice):
     default = 3
 
 
-class boomerang_trail_color_outer(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.
+class boomerang_trail_color_outer(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").
         "match_inner" copies the inner color for this option."""
     display_name = "Boomerang Trail Outer"
     option_random_choice = 0
@@ -529,8 +542,8 @@ class boomerang_trail_color_outer(Choice):
     default = 13
 
 
-class heart_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class heart_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Heart Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -541,8 +554,8 @@ class heart_color(Choice):
     default = 2
 
 
-class magic_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class magic_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Magic Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -556,8 +569,8 @@ class magic_color(Choice):
     default = 2
 
 
-class a_button_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class a_button_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "A Button Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -580,8 +593,8 @@ class a_button_color(Choice):
     default = 2
 
 
-class b_button_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class b_button_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "B Button Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -604,8 +617,8 @@ class b_button_color(Choice):
     default = 3
 
 
-class c_button_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class c_button_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "C Button Color"
     option_random_choice = 0
     option_completely_random = 1
@@ -628,8 +641,8 @@ class c_button_color(Choice):
     default = 8
 
 
-class start_button_color(Choice):
-    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code."""
+class start_button_color(ColorChoice):
+    """Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0")."""
     display_name = "Start Button Color"
     option_random_choice = 0
     option_completely_random = 1

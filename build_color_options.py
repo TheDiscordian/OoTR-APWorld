@@ -11,11 +11,11 @@ def assemble_color_option(f, internal_name: str, func, display_name: str, defaul
     format_color = lambda color: color.replace(' ', '_').lower()
     color_to_id = {format_color(color): index for index, color in enumerate(color_options)}
 
-    docstring = 'Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code.'
+    docstring = 'Choose a color. "random_choice" selects a random option. "completely_random" generates a random hex code. A custom color may be given as a 3- or 6-digit hex code (e.g. "0fecd0").'
     if outer:
         docstring += ' "match_inner" copies the inner color for this option.'
 
-    f.write(f"class {internal_name}(Choice):\n")
+    f.write(f"class {internal_name}(ColorChoice):\n")
     f.write(f"    \"\"\"{docstring}\"\"\"\n")
     f.write(f"    display_name = \"{display_name}\"\n")
     for color, id in color_to_id.items():
@@ -40,7 +40,20 @@ def assemble_sfx_option(f, internal_name: str, sound_hook: sfx.SoundHooks, displ
 with open('ColorSFXOptions.py', 'w') as f:
 
     f.write("# Auto-generated color and sound-effect options from Colors.py and Sounds.py \n")
-    f.write("from Options import Choice\n\n\n")
+    f.write("import re\n\n")
+    f.write("from Options import Choice, TextChoice\n\n\n")
+    f.write('''class ColorChoice(TextChoice):
+    """Choice that also accepts a custom color as a 3- or 6-digit hex code."""
+    def verify(self, world, player_name: str, plando_options) -> None:
+        if isinstance(self.value, int):
+            return super().verify(world, player_name, plando_options)
+        text = str(self.value).lstrip('#')
+        if not re.match(r'^(?:[0-9a-fA-F]{3}){1,2}$', text):
+            raise ValueError(f'{self.__class__.__name__} for {player_name}: '
+                             f'"{self.value}" is neither a listed option nor a hex color code')
+
+
+''')
 
     assemble_color_option(f, "kokiri_color", get_tunic_color_options, "Kokiri Tunic", "Kokiri Green")
     assemble_color_option(f, "goron_color", get_tunic_color_options, "Goron Tunic", "Goron Red")
@@ -75,6 +88,7 @@ with open('ColorSFXOptions.py', 'w') as f:
     assemble_sfx_option(f, "sfx_menu_cursor", sfx.SoundHooks.MENU_CURSOR, "Menu Cursor")
     assemble_sfx_option(f, "sfx_menu_select", sfx.SoundHooks.MENU_SELECT, "Menu Select")
     assemble_sfx_option(f, "sfx_nightfall", sfx.SoundHooks.NIGHTFALL, "Nightfall")
+    assemble_sfx_option(f, "sfx_daybreak", sfx.SoundHooks.DAYBREAK, "Daybreak")
     assemble_sfx_option(f, "sfx_horse_neigh", sfx.SoundHooks.HORSE_NEIGH, "Horse")
     assemble_sfx_option(f, "sfx_hover_boots", sfx.SoundHooks.BOOTS_HOVER, "Hover Boots")
 
