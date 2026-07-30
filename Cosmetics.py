@@ -1,5 +1,6 @@
 from .Utils import data_path
 from .Colors import *
+import json
 import logging
 import os
 from itertools import chain
@@ -119,6 +120,50 @@ def patch_dpad_left(rom, ootworld, symbols):
 def patch_input_viewer(rom, ootworld, symbols):
     if 'CFG_INPUT_VIEWER' in symbols:
         rom.write_byte(symbols['CFG_INPUT_VIEWER'], int(bool(getattr(ootworld, 'input_viewer', False))))
+
+
+def patch_widescreen(rom, ootworld, symbols):
+    # Render in 16:9 anamorphic widescreen, 424x240 instead of 320x240
+    # Widescreen hack by Theboy181 and Admentus, ported from Patcher64+
+    if not _truthy_setting(getattr(ootworld, 'widescreen', False)):
+        return
+
+    with open(data_path('widescreen.json')) as stream:
+        widescreen_patches = json.load(stream)
+
+    # Each entry is "address vanilla widescreen"; leave any address the
+    # randomizer has already written to alone, and report how many were left
+    skipped = 0
+    for entry in widescreen_patches:
+        address, vanilla, widescreen = entry.split()
+        address = int(address, 16)
+        vanilla, widescreen = bytes.fromhex(vanilla), bytes.fromhex(widescreen)
+        current = bytes(rom.read_bytes(address, len(vanilla)))
+        if current == vanilla:
+            rom.write_bytes(address, widescreen)
+        elif current != widescreen:
+            skipped += 1
+    if skipped > 0:
+        logger.error(f"Widescreen: {skipped} of {len(widescreen_patches)} patches skipped, ROM did not contain the expected data.")
+
+    # Widen gScreenWidth, which boot.asm displaces out of Main and into the
+    # payload, so search for the store instead of patching a fixed address:
+    #   addiu t6, r0, 0x0140 / lui at, 0x8010 / sw t6, 0xE500 (at)
+    payload_start = rom.sym('PAYLOAD_START')
+    payload_end = (rom.patch_symbols['PAYLOAD_END'] - 0x80400000) + 0x3480000  # convert from RAM to ROM address
+    payload = bytes(rom.read_bytes(payload_start, payload_end - payload_start))
+    screen_width_store = payload.find(bytes.fromhex('3C018010AC2EE500'))
+    if screen_width_store < 0:
+        logger.error("Widescreen: screen width not found in the payload, the 3D view will stay 4:3.")
+    else:
+        rom.write_int16(payload_start + screen_width_store - 2, 424)
+
+
+def patch_dpad_item_switching(rom, ootworld, symbols):
+    # Switch items with the D-Pad, and show the D-Pad icons that go with it
+    address = rom.sym('CFG_DPAD_ITEM_SWITCHING')
+    if address is not None:
+        rom.write_byte(address, 0x01 if _truthy_setting(getattr(ootworld, 'dpad_item_switching', True)) else 0x00)
 
 
 def _song_name_bytes(name):
@@ -934,6 +979,8 @@ legacy_cosmetic_data_headers = [
 
 patch_sets = {}
 global_patch_sets = [
+    patch_widescreen,
+    patch_dpad_item_switching,
     patch_targeting,
     patch_music,
     patch_tunic_colors,

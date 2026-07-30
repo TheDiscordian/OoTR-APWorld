@@ -1687,6 +1687,20 @@ class DpadDungeonMenu(DefaultOnToggle):
     display_name = "Display D-Pad Dungeon Info"
 
 
+class Widescreen(DefaultOnToggle):
+    """Render the game in 16:9 anamorphic widescreen instead of 4:3.
+    Set your emulator, upscaler, or TV to stretch the picture to 16:9."""
+    display_name = "16:9 Widescreen"
+
+
+class DpadItemSwitching(DefaultOnToggle):
+    """Let the D-Pad switch items during play: toggling iron and hover boots, using the child trade item,
+    and playing the ocarina. Also shows the D-Pad HUD icon.
+    Disabling this makes the D-Pad behave as it does in the vanilla game. Switching trade items on the
+    pause screen is unaffected, as trade item shuffle depends on it."""
+    display_name = "D-Pad Item Switching"
+
+
 class CorrectColors(DefaultOnToggle):
     """Makes in-game models match their HUD element colors."""
     display_name = "Item Model Colors Match Cosmetics"
@@ -1764,6 +1778,8 @@ cosmetic_options: typing.Dict[str, type(Option)] = {
     "default_targeting": Targeting,
     "display_dpad": DisplayDpad,
     "dpad_dungeon_menu": DpadDungeonMenu,
+    "widescreen": Widescreen,
+    "dpad_item_switching": DpadItemSwitching,
     "speedup_music_for_last_triforce_piece": SpeedupMusicForLastTriforcePiece,
     "slowdown_music_when_lowhp": SlowdownMusicWhenLowhp,
     "uninvert_y_axis_in_first_person_camera": UninvertYAxisInFirstPersonCamera,
@@ -2039,6 +2055,8 @@ class OoTOptions(PerGameCommonOptions):
     default_targeting: Targeting
     display_dpad: DisplayDpad
     dpad_dungeon_menu: DpadDungeonMenu
+    widescreen: Widescreen
+    dpad_item_switching: DpadItemSwitching
     speedup_music_for_last_triforce_piece: SpeedupMusicForLastTriforcePiece
     slowdown_music_when_lowhp: SlowdownMusicWhenLowhp
     uninvert_y_axis_in_first_person_camera: UninvertYAxisInFirstPersonCamera
