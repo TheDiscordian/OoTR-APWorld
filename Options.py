@@ -1,7 +1,7 @@
 import typing
 import random
 from dataclasses import dataclass
-from Options import Option, OptionDict, DefaultOnToggle, Toggle, Range, OptionSet, DeathLink, PlandoConnections, \
+from Options import Option, OptionDict, DefaultOnToggle, Toggle, Range, OptionSet, DeathLink, FreeText, PlandoConnections, \
     PerGameCommonOptions, OptionGroup
 from .EntranceShuffle import entrance_shuffle_table
 from .LogicTricks import normalized_name_tricks, normalized_name_advanced_tricks
@@ -1701,6 +1701,23 @@ class DpadItemSwitching(DefaultOnToggle):
     display_name = "D-Pad Item Switching"
 
 
+class ShowSeedInfo(DefaultOnToggle):
+    """Show the seed info block on the file select screen."""
+    display_name = "Show Seed Info"
+
+
+class UserMessage(FreeText):
+    """Custom message shown in the file select seed info block, in place of the
+    Archipelago version and slot name. Up to 42 characters; empty keeps the default."""
+    display_name = "User-Configurable Message"
+    default = ""
+
+    def verify(self, world, player_name: str, plando_options) -> None:
+        if len(str(self.value)) > 42:
+            raise ValueError(f'user_message for {player_name} is {len(str(self.value))} '
+                             f'characters; the file select block fits 42')
+
+
 class CorrectColors(DefaultOnToggle):
     """Makes in-game models match their HUD element colors."""
     display_name = "Item Model Colors Match Cosmetics"
@@ -1780,6 +1797,8 @@ cosmetic_options: typing.Dict[str, type(Option)] = {
     "dpad_dungeon_menu": DpadDungeonMenu,
     "widescreen": Widescreen,
     "dpad_item_switching": DpadItemSwitching,
+    "show_seed_info": ShowSeedInfo,
+    "user_message": UserMessage,
     "speedup_music_for_last_triforce_piece": SpeedupMusicForLastTriforcePiece,
     "slowdown_music_when_lowhp": SlowdownMusicWhenLowhp,
     "uninvert_y_axis_in_first_person_camera": UninvertYAxisInFirstPersonCamera,
@@ -2057,6 +2076,8 @@ class OoTOptions(PerGameCommonOptions):
     dpad_dungeon_menu: DpadDungeonMenu
     widescreen: Widescreen
     dpad_item_switching: DpadItemSwitching
+    show_seed_info: ShowSeedInfo
+    user_message: UserMessage
     speedup_music_for_last_triforce_piece: SpeedupMusicForLastTriforcePiece
     slowdown_music_when_lowhp: SlowdownMusicWhenLowhp
     uninvert_y_axis_in_first_person_camera: UninvertYAxisInFirstPersonCamera

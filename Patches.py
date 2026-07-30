@@ -426,9 +426,26 @@ def patch_rom(world, rom):
     rom.write_bytes(rom.sym('TIME_STRING_TXT'), makebytes(time_str, 25))
     rom.write_bytes(rom.sym('WEB_ID_STRING_TXT'), makebytes('', 12))
 
-    rom.write_byte(rom.sym('CFG_SHOW_SETTING_INFO'), 0x01)
+    rom.write_byte(rom.sym('CFG_SHOW_SETTING_INFO'),
+                   0x01 if getattr(world, 'show_seed_info', True) else 0x00)
 
-    msg = [f"{apname} {ap_version}", world.multiworld.get_player_name(world.player)]
+    custom_msg = str(getattr(world, 'user_message', '') or '').strip()[:2 * line_len]
+    if custom_msg:
+        if len(custom_msg) <= line_len:
+            msg = [custom_msg, ""]
+        else:
+            # try to split message
+            msg = [custom_msg[:line_len], custom_msg[line_len:]]
+            part1 = msg[0].split(' ')
+            if len(part1[-1]) + len(msg[1]) < line_len:
+                msg = [" ".join(part1[:-1]), part1[-1] + msg[1]]
+            else:
+                # Is it a URL?
+                part1 = msg[0].split('/')
+                if len(part1[-1]) + len(msg[1]) < line_len:
+                    msg = ["/".join(part1[:-1]) + "/", part1[-1] + msg[1]]
+    else:
+        msg = [f"{apname} {ap_version}", world.multiworld.get_player_name(world.player)]
     for idx,part in enumerate(msg):
         part_bytes = list(ord(c) for c in part) + [0] * (line_len+1)
         part_bytes = part_bytes[:(line_len+1)]
