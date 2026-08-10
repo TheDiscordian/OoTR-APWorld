@@ -795,10 +795,13 @@ def patch_rom(world, rom):
                 for address in new_entrance.get('addresses', []):
                     rom.write_int16(address, child_idx)
             elif entrance.type != 'Grotto':
-                exit_updates.append((new_entrance['index'], replaced_entrance['index']))
+                # Child has problems with adult blue warps, so when the destination is a
+                # blue warp, use its child-safe return entrance (matches upstream OoTR 9.1)
+                child_safe = replaced_entrance.get('child_index', replaced_entrance['index'])
+                exit_updates.append((new_entrance['index'], child_safe))
 
                 for address in new_entrance.get('addresses', []):
-                    rom.write_int16(address, replaced_entrance['index'])
+                    rom.write_int16(address, child_safe)
 
     exit_table = generate_exit_lookup_table()
 
