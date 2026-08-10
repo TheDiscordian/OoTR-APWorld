@@ -216,7 +216,9 @@ void draw_dpad_and_menu_utilities() {
                 sprite_load(db, &quest_items_sprite, 14, 1);
                 sprite_draw(db, &quest_items_sprite, 0, left_main_dpad + 14, top_main_dpad + 2, 12, 12);
             }
-        } else { // Main game dpad
+        // Gate the tip items on the same display condition as the dpad cross itself,
+        // so hiding the dpad hides the boots/trade/ocarina icons with it.
+        } else if (DISPLAY_DPAD && CFG_DISPLAY_DPAD) { // Main game dpad
             if (!CAN_USE_DPAD) {
                 gDPSetPrimColor(db->p++, 0, 0, 0xFF, 0xFF, 0xFF, alpha * 0x46 / 0xFF);
             }
