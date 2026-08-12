@@ -3,7 +3,9 @@ OoT AP bridge: attaches to N64 emulator memory, serves connector protocol on :28
 """
 
 import asyncio
+import functools
 import json
+import os
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 try:
@@ -792,6 +794,34 @@ def _check_uncached_locations(emu: EmuLoaderClient, st: OoTBridgeState) -> dict:
     return out
 
 
+@functools.lru_cache(maxsize=1)
+def _symbol_collectible_offset() -> Optional[int]:
+    """collectible_override_flags offset from RANDO_CONTEXT, per the shipped symbols.
+
+    Multidata generated before a payload rebuild carries a stale offset, and a room
+    cannot be re-uploaded without losing its server state. The ROM in the emulator is
+    built from these symbols, so they are the correct fallback.
+    """
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "data", "generated", "symbols.json")
+    try:
+        with open(path) as fh:
+            syms = json.load(fh)
+        return (int(syms["collectible_override_flags"]["address"], 16)
+                - int(syms["RANDO_CONTEXT"]["address"], 16))
+    except (OSError, KeyError, ValueError):
+        return None
+
+
+def _collectible_offset_candidates(co: int) -> List[int]:
+    """The multidata's offset first, then the shipped-symbol offset if it differs."""
+    candidates = [co]
+    alt = _symbol_collectible_offset()
+    if alt is not None and alt != co:
+        candidates.append(alt)
+    return candidates
+
+
 def _check_collectibles(emu: EmuLoaderClient, st: OoTBridgeState) -> dict:
     result: dict = {}
     if st.collectible_overrides is None or not st.collectible_offsets:
@@ -885,9 +915,11 @@ def _process_block(emu: EmuLoaderClient, st: OoTBridgeState, block: dict) -> Non
     # Collectible override pointer (resolved once from a rando-context pointer).
     co = block.get("collectibleOverrides", 0)
     if st.collectible_overrides is None and co:
-        ptr = emu.read_u32(0x400000 + co)
-        if 0x80000000 <= ptr < 0x80800000:
-            st.collectible_overrides = ptr - 0x80000000
+        for candidate in _collectible_offset_candidates(co):
+            ptr = emu.read_u32(0x400000 + candidate)
+            if 0x80000000 <= ptr < 0x80800000:
+                st.collectible_overrides = ptr - 0x80000000
+                break
 
     new_offsets = block.get("collectibleOffsets")
     if new_offsets != st.collectible_offsets:
